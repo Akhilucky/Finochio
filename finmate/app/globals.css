@@ -1,0 +1,151 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 252 56% 57%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 252 56% 57%;
+    --radius: 0.75rem;
+    --chart-1: 252 56% 57%;
+    --chart-2: 340 65% 60%;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 252 56% 57%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 252 56% 57%;
+    --chart-1: 252 56% 57%;
+    --chart-2: 340 65% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.brainrot-mode {
+  --background: 300 100% 5%;
+  --foreground: 120 100% 50%;
+  --card: 270 100% 10%;
+  --card-foreground: 60 100% 50%;
+  --popover: 330 100% 7%;
+  --popover-foreground: 30 100% 50%;
+  --primary: 195 100% 50%;
+  --primary-foreground: 0 0% 0%;
+  --secondary: 60 100% 50%;
+  --secondary-foreground: 270 100% 10%;
+  --muted: 240 30% 15%;
+  --muted-foreground: 120 100% 70%;
+  --accent: 330 100% 50%;
+  --accent-foreground: 210 100% 10%;
+  --destructive: 0 100% 50%;
+  --destructive-foreground: 210 100% 98%;
+  --border: 300 100% 50%;
+  --input: 270 100% 30%;
+  --ring: 195 100% 50%;
+  --chart-1: 195 100% 50%;
+  --chart-2: 330 100% 50%;
+
+  font-family: "Comic Sans MS", cursive;
+  text-shadow: 0 0 5px var(--primary);
+}
+
+.brainrot-mode button {
+  transform: rotate(-2deg);
+  transition: all 0.2s ease;
+}
+
+.brainrot-mode button:hover {
+  transform: rotate(2deg) scale(1.05);
+}
+
+.brainrot-mode .card {
+  box-shadow: 0 0 15px var(--primary);
+  animation: pulse 2s infinite;
+}
+
+.brainrot-mode h1,
+.brainrot-mode h2,
+.brainrot-mode h3 {
+  background: linear-gradient(90deg, #ff00ff, #00ffff, #ffff00);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: rainbow 3s ease infinite;
+}
+
+.brainrot-mode img,
+.brainrot-mode svg {
+  filter: hue-rotate(90deg) saturate(200%);
+  animation: spin 10s linear infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes rainbow {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
