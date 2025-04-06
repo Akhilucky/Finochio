@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { LoanRequest } from "@/components/loan-request";
 import dynamic from "next/dynamic";
 import { FinancialClutch } from "@/components/financial-clutch";
+import { Sidebar } from "@/components/sidebar";
 
 // Dynamically import PieChart to avoid module errors
 const PieChart = dynamic(() => import("@/components/pie-chart").catch(() => () => <div>PieChart not available</div>), { ssr: false });
@@ -85,7 +86,7 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem("userToken");
       if (!token) {
-        alert("You need to log in to view your goals.");
+        router.push("/login");
         return;
       }
 
@@ -96,44 +97,43 @@ export default function DashboardPage() {
 
       const result = await response.json();
       if (response.ok) {
-        setGoals(result.data.map((goal: any) => goal.goal)); // Extract goal strings
-      } else {
-        alert(result.message || "Failed to fetch goals.");
+        setGoals(result.data.map((goal: any) => goal.goal));
       }
     } catch (error) {
-      alert("An unexpected error occurred while fetching goals.");
+      // Silently handle error without showing alerts
+      console.error("Error fetching goals:", error);
     }
   };
 
   const handleAddGoal = async () => {
     if (!newGoal) {
-      alert("Please enter a goal.");
       return;
     }
 
     try {
       const token = localStorage.getItem("userToken");
       if (!token) {
-        alert("You need to log in to add a goal.");
+        router.push("/login");
         return;
       }
 
       const response = await fetch("http://127.0.0.1:3000/api/create-goal", {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}` 
+        },
         body: JSON.stringify({ goal: newGoal }),
       });
 
       const result = await response.json();
       if (response.ok) {
-        alert("Goal added successfully!");
         setNewGoal(""); // Clear input field
         fetchGoals(); // Refresh goals list
-      } else {
-        alert(result.message || "Failed to add goal.");
       }
     } catch (error) {
-      alert("An unexpected error occurred while adding the goal.");
+      // Silently handle error without showing alerts
+      console.error("Error adding goal:", error);
     }
   };
 
@@ -221,186 +221,200 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 p-6 bg-muted/10 rounded-lg">
-      {/* Welcome Section */}
-      <div className="flex items-center gap-6 bg-white p-6 rounded-lg shadow-md">
-        <Avatar className="h-16 w-16 border-4 border-primary">
-          <AvatarImage src="/placeholder.svg?height=64&width=64" alt="FinMate" />
-          <AvatarFallback>FM</AvatarFallback>
-        </Avatar>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">
-            Welcome back, {userName}! 👋
-          </h1>
-          <p className="text-muted-foreground text-sm">Let’s check your financial health today.</p>
-        </div>
-      </div>
-
-      {/* Highlights Section */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-purple-800">Current Balance</CardTitle>
-            <CardDescription className="text-purple-600">Available Funds</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-purple-900">₹{dashboardData?.balance || 0}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800">Weekly Spending</CardTitle>
-            <CardDescription className="text-blue-600">This week</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-900">₹{dashboardData?.weeklySpending || 0}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">Total Available</CardTitle>
-            <CardDescription className="text-green-600">After Spending</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-900">
-              ₹{(dashboardData?.balance || 0) - (dashboardData?.weeklySpending || 0)}
+    <div className="flex min-h-screen">
+      <Sidebar />
+      <main className="flex-1 p-6">
+        <div className="flex flex-col gap-8 bg-muted/10 rounded-lg">
+          {/* Welcome Section */}
+          <div className="flex items-center gap-6 bg-white p-6 rounded-lg shadow-md">
+            <Avatar className="h-16 w-16 border-4 border-primary">
+              <AvatarImage src="/placeholder.svg?height=64&width=64" alt="FinMate" />
+              <AvatarFallback>FM</AvatarFallback>
+            </Avatar>
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-primary">
+                Welcome back, {userName}! 👋
+              </h1>
+              <p className="text-muted-foreground text-sm">Let’s check your financial health today.</p>
             </div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-blue-800">Total Spent</CardTitle>
-            <CardDescription className="text-blue-600">This week</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-blue-900">₹{dashboardData?.totalSpent}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-50 to-green-100 shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-800">Remaining Budget</CardTitle>
-            <CardDescription className="text-green-600">This week</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="number"
-              value={dashboardData?.remainingBudget || 0}
-              onChange={(e) =>
-                setDashboardData((prev) => ({
-                  ...prev!,
-                  remainingBudget: Number(e.target.value),
-                }))
-              }
-              className="mb-2"
-            />
-            <div className="text-3xl font-bold text-green-900">₹{dashboardData?.remainingBudget}</div>
-            <Progress
-              value={
-                (dashboardData?.remainingBudget! /
-                  (dashboardData?.totalSpent! + dashboardData?.remainingBudget!)) *
-                100
-              }
-              className="h-2 mt-2 bg-green-200"
-            />
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 shadow-md">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-yellow-800">Top Spending Category</CardTitle>
-            <CardDescription className="text-yellow-600">This week</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-yellow-900">{dashboardData?.topCategory}</div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
-      {/* Tabs Section */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="flex justify-center gap-4">
-          <TabsTrigger value="overview" className="px-4 py-2 text-sm font-medium">
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="gamification" className="px-4 py-2 text-sm font-medium">
-            Gamification
-          </TabsTrigger>
-          <TabsTrigger value="leaderboard" className="px-4 py-2 text-sm font-medium">
-            Leaderboard
-          </TabsTrigger>
-          <TabsTrigger value="financial-clutch" className="px-4 py-2 text-sm font-medium">
-            Financial Clutch
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="col-span-1 shadow-md">
-              <CardHeader>
-                <CardTitle>Financial Nudges</CardTitle>
-                <CardDescription>Personalized tips for you</CardDescription>
+          {/* Highlights Section */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-purple-800">Current Balance</CardTitle>
+                <CardDescription className="text-purple-600">Available Funds</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="tips-container bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100 shadow-inner">
-                  {displayedTips.map((tip, index) => (
-                    <div 
-                      key={index} 
-                      className="tip-item flex items-start gap-3 mb-3 p-2 bg-white/80 rounded-md shadow-sm transition-all duration-500 animate-fadeIn hover:bg-blue-50"
-                    >
-                      <div className="emoji-container text-xl flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full">
-                        {tip.emoji}
-                      </div>
-                      <p className="text-sm text-gray-700">{tip.text}</p>
+                <div className="text-3xl font-bold text-purple-900">₹100000</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-blue-800">Weekly Spending</CardTitle>
+                <CardDescription className="text-blue-600">This week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-900">₹9900</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-green-800">Monthly Spending</CardTitle>
+                <CardDescription className="text-green-600">This month</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-900">₹124500</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-green-800">Total Available</CardTitle>
+                <CardDescription className="text-green-600">After Spending</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-green-900">
+                  ₹{(dashboardData?.balance || 0) - (dashboardData?.weeklySpending || 0)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-blue-800">Total Spent</CardTitle>
+                <CardDescription className="text-blue-600">This week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-blue-900">₹{dashboardData?.totalSpent}</div>
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-green-50 to-green-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-green-800">Remaining Budget</CardTitle>
+                <CardDescription className="text-green-600">This week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Input
+                  type="number"
+                  value={dashboardData?.remainingBudget || 0}
+                  onChange={(e) =>
+                    setDashboardData((prev) => ({
+                      ...prev!,
+                      remainingBudget: Number(e.target.value),
+                    }))
+                  }
+                  className="mb-2"
+                />
+                <div className="text-3xl font-bold text-green-900">₹{dashboardData?.remainingBudget}</div>
+                <Progress
+                  value={
+                    (dashboardData?.remainingBudget! /
+                      (dashboardData?.totalSpent! + dashboardData?.remainingBudget!)) *
+                    100
+                  }
+                  className="h-2 mt-2 bg-green-200"
+                />
+              </CardContent>
+            </Card>
+            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 shadow-md">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-yellow-800">Top Spending Category</CardTitle>
+                <CardDescription className="text-yellow-600">This week</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold text-yellow-900">{dashboardData?.topCategory}</div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Tabs Section */}
+          <Tabs defaultValue="overview" className="space-y-6">
+            <TabsList className="flex justify-center gap-4">
+              <TabsTrigger value="overview" className="px-4 py-2 text-sm font-medium">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="gamification" className="px-4 py-2 text-sm font-medium">
+                Gamification
+              </TabsTrigger>
+              <TabsTrigger value="leaderboard" className="px-4 py-2 text-sm font-medium">
+                Leaderboard
+              </TabsTrigger>
+              <TabsTrigger value="financial-clutch" className="px-4 py-2 text-sm font-medium">
+                Financial Clutch
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="overview" className="space-y-6">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card className="col-span-1 shadow-md">
+                  <CardHeader>
+                    <CardTitle>Financial Nudges</CardTitle>
+                    <CardDescription>Personalized tips for you</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="tips-container bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-100 shadow-inner">
+                      {displayedTips.map((tip, index) => (
+                        <div 
+                          key={index} 
+                          className="tip-item flex items-start gap-3 mb-3 p-2 bg-white/80 rounded-md shadow-sm transition-all duration-500 animate-fadeIn hover:bg-blue-50"
+                        >
+                          <div className="emoji-container text-xl flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full">
+                            {tip.emoji}
+                          </div>
+                          <p className="text-sm text-gray-700">{tip.text}</p>
+                        </div>
+                      ))}
                     </div>
+                    <button onClick={handleViewTips} className="mt-3 text-sm text-primary underline">
+                      View All Tips
+                    </button>
+                    {tips.length > 0 && (
+                      <ul className="mt-4 text-sm text-muted-foreground">
+                        {tips.map((tip, index) => (
+                          <li key={index}>- {tip}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </CardContent>
+                </Card>
+                <Card className="col-span-1 shadow-md">
+                  <CardHeader>
+                    <CardTitle>Needs vs Wants</CardTitle>
+                    <CardDescription>Analyze your spending habits</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex justify-center items-center h-[300px]">
+                      <PieChart
+                        data={[
+                          { name: "Needs", value: 70, color: "#6A0DAD" },
+                          { name: "Wants", value: 30, color: "#4CAF50" }
+                        ]}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+            <TabsContent value="gamification" className="space-y-6">
+              <GamificationPanel />
+              <div className="mt-6">
+                <ul className="list-disc pl-6">
+                  {goals.map((goal, index) => (
+                    <li key={index} className="text-sm">
+                      {goal}
+                    </li>
                   ))}
-                </div>
-                <button onClick={handleViewTips} className="mt-3 text-sm text-primary underline">
-                  View All Tips
-                </button>
-                {tips.length > 0 && (
-                  <ul className="mt-4 text-sm text-muted-foreground">
-                    {tips.map((tip, index) => (
-                      <li key={index}>- {tip}</li>
-                    ))}
-                  </ul>
-                )}
-              </CardContent>
-            </Card>
-            <Card className="col-span-1 shadow-md">
-              <CardHeader>
-                <CardTitle>Needs vs Wants</CardTitle>
-                <CardDescription>Analyze your spending habits</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-center items-center h-[300px]">
-                  <PieChart
-                    data={[
-                      { name: "Needs", value: 70, color: "#6A0DAD" },
-                      { name: "Wants", value: 30, color: "#4CAF50" }
-                    ]}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        <TabsContent value="gamification" className="space-y-6">
-          <GamificationPanel />
-          <div className="mt-6">
-            <ul className="list-disc pl-6">
-              {goals.map((goal, index) => (
-                <li key={index} className="text-sm">
-                  {goal}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </TabsContent>
-        <TabsContent value="leaderboard" className="space-y-6">
-          <Leaderboard />
-        </TabsContent>
-        <TabsContent value="financial-clutch" className="space-y-6">
-          <FinancialClutch />
-        </TabsContent>
-      </Tabs>
+                </ul>
+              </div>
+            </TabsContent>
+            <TabsContent value="leaderboard" className="space-y-6">
+              <Leaderboard />
+            </TabsContent>
+            <TabsContent value="financial-clutch" className="space-y-6">
+              <FinancialClutch />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </main>
     </div>
   );
 }
